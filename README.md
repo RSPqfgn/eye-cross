@@ -1,8 +1,6 @@
-<p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Eye Cross：扔两颗末影之眼，两条拟合直线交叉定位末地要塞，右侧俯视图展示两条轨迹虚线交叉于准星节点">
-</p>
+# Eye Cross
 
-<p align="center">
+<p>
   <img src="https://img.shields.io/badge/Minecraft-26.1.2-6BFF8C?style=flat-square&labelColor=0C0F14&color=6BFF8C" alt="Minecraft 26.1.2">
   <img src="https://img.shields.io/badge/Fabric-Loader_0.19.3%2B-B78CFF?style=flat-square&labelColor=0C0F14&color=B78CFF" alt="Fabric Loader 0.19.3+">
   <img src="https://img.shields.io/badge/License-MIT-7C8698?style=flat-square&labelColor=0C0F14&color=7C8698" alt="MIT">
