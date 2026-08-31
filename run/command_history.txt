@@ -1,0 +1,3 @@
+/tp
+/tp Player709 -192 ~ 1616
+/tp Player766 0 ~ 0

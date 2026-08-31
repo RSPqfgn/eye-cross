@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "eye-cross",
+	"version": "${version}",
+	"name": "Eye Cross",
+	"description": "Record Eye of Ender trajectories, fit two or more lines and intersect them on the XZ plane to locate the stronghold. Pure client-side.",
+	"authors": [
+		"RSPqfgn"
+	],
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/eye-cross/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"rspqfgn.eye_cross.client.EyeCrossClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
