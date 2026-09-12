@@ -63,6 +63,13 @@ jar {
 	}
 }
 
+// 产物命名规则：<模组名>-fabric-<模组版本>-<Minecraft版本>.jar
+// 例如 eye-cross-fabric-1.0.0-26.2.jar（含 -sources 版）
+tasks.withType(AbstractArchiveTask).configureEach {
+	archiveBaseName = "${project.name}-fabric"
+	archiveVersion = "${project.version}-${project.minecraft_version}"
+}
+
 // configure the maven publication
 publishing {
 	publications {
