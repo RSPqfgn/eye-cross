@@ -12,7 +12,9 @@
 
 ## 快速上手
 
-1. 安装mod，进入主世界；
+**前置条件：** [Fabric Loader](https://fabricmc.net/install) + [Fabric API](https://modrinth.com/mod/fabric-api)
+
+1. 安装 mod，进入主世界；
 2. 随手扔出一颗末影之眼——它破碎或掉落时，飞行轨迹已自动记录；
 3. 走远一段（让第二次投掷朝向不同的方向），再扔一颗；
 4. 聊天栏给出要塞坐标与误差，点击「[点击传送]」即可一键 `/tp @s X ~ Z`。
