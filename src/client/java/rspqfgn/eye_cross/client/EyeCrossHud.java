@@ -29,7 +29,7 @@ public final class EyeCrossHud {
             return;
         }
         Minecraft client = Minecraft.getInstance();
-        if (client.player == null || client.options.hideGui) {
+        if (client.player == null || client.gameRenderer.gameRenderState().guiRenderState.isHudHidden) {
             return;
         }
 

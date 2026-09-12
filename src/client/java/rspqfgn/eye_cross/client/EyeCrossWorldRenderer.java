@@ -31,7 +31,7 @@ public final class EyeCrossWorldRenderer {
                 return;
             }
             // 打开原版每帧 gizmo 收集作用域，期间 Gizmos.xxx 的图形会被本帧渲染
-            try (var ignored = context.levelRenderer().collectPerFrameGizmos()) {
+            try (var ignored = context.levelRenderer().collectPerFrameRenderThreadGizmos()) {
                 Vec3 cam = context.levelState().cameraRenderState.pos;
                 double bottom = cam.y - BEAM_HALF_HEIGHT;
                 double top = cam.y + BEAM_HALF_HEIGHT;
