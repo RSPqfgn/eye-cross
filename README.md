@@ -10,6 +10,13 @@
 
 **Eye Cross** 是一个纯客户端 Fabric 模组：自动记录末影之眼的飞行轨迹，把每条轨迹拟合成一条直线，两条以上直线求最小二乘交点，扔两颗眼就能拿到要塞坐标。
 
+## 版本支持
+
+| 分支 | Minecraft | Fabric Loader | Fabric API | 构建产物 |
+| --- | --- | --- | --- | --- |
+| `main` | 26.1.2 | 0.19.3 | 0.155.2+26.1.2 | `eye-cross-fabric-1.0.0-26.1.2.jar` |
+| `mc-26.2` | 26.2 | 0.19.5 | 0.160.0+26.2 | `eye-cross-fabric-1.0.0-26.2.jar` |
+
 ## 快速上手
 
 1. 安装mod，进入主世界；
@@ -46,6 +53,8 @@
 ./gradlew build      # 产物在 build/libs/
 ./gradlew runClient  # 开发环境试玩
 ```
+
+产物命名规则：`<模组名>-fabric-<模组版本>-<Minecraft版本>.jar`，例如 `eye-cross-fabric-1.0.0-26.1.2.jar`；sources jar 同名加 `-sources` 后缀。各分支的版本对应关系见上表。
 
 ## License
 
