@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
- * /eyecross 客户端命令：help / status / reset / hud。
+ * /eyecross 客户端命令：help / status / rings / reset / hud / hudpos。
  */
 public final class EyeCrossCommands {
     private EyeCrossCommands() {
@@ -25,6 +25,10 @@ public final class EyeCrossCommands {
                             reportStatus(ctx.getSource());
                             return 1;
                         }))
+                        .then(ClientCommands.literal("rings").executes(ctx -> {
+                            reportRings(ctx.getSource());
+                            return 1;
+                        }))
                         .then(ClientCommands.literal("reset").executes(ctx -> {
                             EyeCrossState.reset();
                             feedback(ctx.getSource(),
@@ -37,17 +41,46 @@ public final class EyeCrossCommands {
                                     ? "eyecross.chat.hud_enabled"
                                     : "eyecross.chat.hud_disabled").withStyle(ChatFormatting.GREEN));
                             return 1;
-                        }))));
+                        }))
+                        .then(ClientCommands.literal("hudpos")
+                                .then(ClientCommands.literal("topleft").executes(ctx -> setHudPos(ctx.getSource(),
+                                        EyeCrossState.HudPosition.TOP_LEFT)))
+                                .then(ClientCommands.literal("topright").executes(ctx -> setHudPos(ctx.getSource(),
+                                        EyeCrossState.HudPosition.TOP_RIGHT)))
+                                .then(ClientCommands.literal("bottomleft").executes(ctx -> setHudPos(ctx.getSource(),
+                                        EyeCrossState.HudPosition.BOTTOM_LEFT)))
+                                .then(ClientCommands.literal("bottomright").executes(ctx -> setHudPos(ctx.getSource(),
+                                        EyeCrossState.HudPosition.BOTTOM_RIGHT))))));
     }
 
     private static void sendHelp(FabricClientCommandSource source) {
         feedback(source, EyeCrossText.tr("eyecross.help.header").withStyle(ChatFormatting.AQUA));
-        feedback(source, EyeCrossText.tr("eyecross.help.step1").withStyle(ChatFormatting.GRAY));
-        feedback(source, EyeCrossText.tr("eyecross.help.step2").withStyle(ChatFormatting.GRAY));
-        feedback(source, EyeCrossText.tr("eyecross.help.step3").withStyle(ChatFormatting.GRAY));
-        feedback(source, EyeCrossText.tr("eyecross.help.more", EyeCrossState.MAX_LINES)
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_help").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_status").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_rings").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_reset").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_hud").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_hudpos").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.footer").withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    private static int setHudPos(FabricClientCommandSource source, EyeCrossState.HudPosition pos) {
+        EyeCrossState.hudPosition = pos;
+        feedback(source, EyeCrossText.tr("eyecross.chat.hudpos",
+                EyeCrossText.tr("eyecross.hudpos." + pos.key())).withStyle(ChatFormatting.GREEN));
+        return 1;
+    }
+
+    private static void reportRings(FabricClientCommandSource source) {
+        feedback(source, EyeCrossText.tr("eyecross.chat.rings_header").withStyle(ChatFormatting.AQUA));
+        for (int i = 0; i < StrongholdRings.RINGS.size(); i++) {
+            StrongholdRings.Ring r = StrongholdRings.RINGS.get(i);
+            feedback(source, EyeCrossText.tr("eyecross.chat.ring_entry",
+                    i + 1, r.count(), EyeCrossText.f0(r.minDist()), EyeCrossText.f0(r.maxDist()))
+                    .withStyle(ChatFormatting.GRAY));
+        }
+        feedback(source, EyeCrossText.tr("eyecross.chat.ring_total", StrongholdRings.TOTAL)
                 .withStyle(ChatFormatting.GRAY));
-        feedback(source, EyeCrossText.tr("eyecross.help.usage").withStyle(ChatFormatting.GRAY));
     }
 
     private static void reportStatus(FabricClientCommandSource source) {
@@ -72,6 +105,16 @@ public final class EyeCrossCommands {
                     .append(EyeCrossText.teleport(s.x(), s.z())));
         } else if (EyeCrossState.parallelWarning) {
             feedback(source, EyeCrossText.tr("eyecross.chat.parallel").withStyle(ChatFormatting.RED));
+        } else if (EyeCrossState.estimate != null) {
+            StrongholdSolver.SingleThrowEstimate est = EyeCrossState.estimate;
+            feedback(source, EyeCrossText
+                    .tr("eyecross.chat.single_estimate",
+                            est.ringIndex(), est.ringCount(), EyeCrossText.f1(est.x()),
+                            EyeCrossText.f1(est.z()), EyeCrossText.f0(est.distanceFromPlayer()),
+                            EyeCrossText.f0(est.errorRadius()))
+                    .withStyle(ChatFormatting.GOLD)
+                    .append(Component.literal(" "))
+                    .append(EyeCrossText.teleport(est.x(), est.z())));
         } else {
             feedback(source, EyeCrossText.tr("eyecross.chat.need_two").withStyle(ChatFormatting.GRAY));
         }

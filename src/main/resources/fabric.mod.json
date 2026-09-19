@@ -21,5 +21,8 @@
 		"minecraft": "~26.1.2",
 		"java": ">=25",
 		"fabric-api": "*"
+	},
+	"suggests": {
+		"xaerominimap": ">=26.2.0"
 	}
 }

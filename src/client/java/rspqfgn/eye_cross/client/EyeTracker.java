@@ -11,6 +11,8 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.EyeOfEnder;
 
+import rspqfgn.eye_cross.client.xaero.XaeroSync;
+
 /**
  * 每个客户端 tick 巡检世界里的末影之眼实体，记录其飞行轨迹；
  * 实体消失（破碎/掉落/飞出渲染距离）时结束采样并拟合直线、更新解。
@@ -84,6 +86,8 @@ public final class EyeTracker {
             EyeCrossState.parallelWarning = false;
             EyeCrossState.solution = new EyeCrossState.Solution(s.x(), s.z(), s.rmsError(), s.maxError(),
                     s.distanceFromPlayer(), EyeCrossState.LINES.size());
+            // 可选联动：精确解产生后同步到 Xaero's Minimap（无 Xaero 或版本不足时静默降级）
+            XaeroSync.pushSolution(s.x(), s.z(), EyeCrossState.dimension);
 
             MutableComponent msg = EyeCrossText
                     .tr("eyecross.chat.solution",
@@ -96,8 +100,37 @@ public final class EyeTracker {
             if (s.maxError() > 5.0) {
                 message(client, EyeCrossText.tr("eyecross.chat.high_residual").withStyle(ChatFormatting.YELLOW));
             }
+            // 对照要塞环带表：交点应在某个环带内，顺带告诉玩家这是第几环、本环还有多少要塞
+            double originDistance = Math.hypot(s.x(), s.z());
+            int ring = StrongholdSolver.ringOfRadius(originDistance);
+            if (ring >= 0) {
+                StrongholdRings.Ring r = StrongholdRings.RINGS.get(ring);
+                message(client, EyeCrossText.tr("eyecross.chat.ring_of_solution",
+                        ring + 1, EyeCrossText.f0(r.minDist()), EyeCrossText.f0(r.maxDist()), r.count())
+                        .withStyle(ChatFormatting.GRAY));
+            } else {
+                message(client, EyeCrossText.tr("eyecross.chat.not_in_any_ring",
+                        EyeCrossText.f0(originDistance)).withStyle(ChatFormatting.YELLOW));
+            }
         } else {
-            message(client, EyeCrossText.tr("eyecross.chat.need_more").withStyle(ChatFormatting.GRAY));
+            // 第一条轨迹：投掷射线 + 环带分布 → 单次投掷估测（无需第二颗眼即可先拿个粗略坐标）
+            EyeCrossState.estimate = null;
+            StrongholdSolver.SingleThrowEstimate est = StrongholdSolver.estimateSingleThrow(
+                    trail.samples(), client.player.getX(), client.player.getZ());
+            if (est == null) {
+                message(client, EyeCrossText.tr("eyecross.chat.estimate_out_of_range")
+                        .withStyle(ChatFormatting.YELLOW));
+                return;
+            }
+            EyeCrossState.estimate = est;
+            message(client, EyeCrossText
+                    .tr("eyecross.chat.single_estimate",
+                            est.ringIndex(), est.ringCount(), EyeCrossText.f1(est.x()),
+                            EyeCrossText.f1(est.z()), EyeCrossText.f0(est.distanceFromPlayer()),
+                            EyeCrossText.f0(est.errorRadius()))
+                    .withStyle(ChatFormatting.GOLD)
+                    .append(Component.literal(" "))
+                    .append(EyeCrossText.teleport(est.x(), est.z())));
         }
     }
 
