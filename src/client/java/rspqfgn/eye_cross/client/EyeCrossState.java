@@ -62,13 +62,35 @@ public final class EyeCrossState {
 
     public static final int MAX_LINES = 12;
 
+    /** HUD 在屏幕上的显示位置；/eyecross hudpos 设置。 */
+    public enum HudPosition {
+        TOP_LEFT("topleft"),
+        TOP_RIGHT("topright"),
+        BOTTOM_LEFT("bottomleft"),
+        BOTTOM_RIGHT("bottomright");
+
+        private final String key;
+
+        HudPosition(String key) {
+            this.key = key;
+        }
+
+        public String key() {
+            return key;
+        }
+    }
+
     /** HUD 是否显示；/eyecross hud 切换。 */
     public static boolean hudVisible = true;
+    /** HUD 屏幕位置；/eyecross hudpos 切换。 */
+    public static HudPosition hudPosition = HudPosition.TOP_LEFT;
 
     public static final Map<Integer, Trail> ACTIVE_TRAILS = new HashMap<>();
     public static final List<FitLine> LINES = new ArrayList<>();
     /** 最新解；直线数不足 2 或求解失败时为 null。 */
     public static Solution solution;
+    /** 只扔了一颗眼时的环带估测；求出精确解前供 HUD / status 显示。 */
+    public static StrongholdSolver.SingleThrowEstimate estimate;
     /** 最近一次求解是否因直线近似平行而失败。 */
     public static boolean parallelWarning;
     /** 记录轨迹时所在维度；切换维度时清空全部数据。 */
@@ -89,7 +111,11 @@ public final class EyeCrossState {
         clearTransient();
         LINES.clear();
         solution = null;
+        estimate = null;
         parallelWarning = false;
+        // 用户确认（t12）：模组重置/维度切换**不再**清空 Xaero 地图上的 eye-cross 路标——
+        // 路标由精确解产生后保持在地图上，玩家可自行在 Xaero 里管理/删除。
+        // （早期版本曾调用 XaeroSync.clearAll(dimension) 同步清理，已按用户要求移除。）
     }
 
     public static void onDimensionChanged(ResourceKey<Level> key) {

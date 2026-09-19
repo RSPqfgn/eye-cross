@@ -9,6 +9,12 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+
+	// Xaero's official maven (docs/xaero-integration-feasibility.md §3 步骤 0)
+	maven {
+		name = "Xaero's Maven"
+		url = "https://chocolateminecraft.com/maven"
+	}
 }
 
 loom {
@@ -29,6 +35,17 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// 可选联动（docs/xaero-integration-feasibility.md §3 步骤 0）：
+	// Xaero's Minimap 官方第三方路标 API（minimap ≥26.2.0 引入）。
+	// Loom 默认不把依赖 mod 打进发布 jar；fabric.mod.json 用 "suggests" 声明而非强制。
+	// mc-26.2 分支坐标：xaero.minimap:xaerominimap-fabric-26.2:26.5.0。
+	// 注意：MC 26.1+ 为非混淆版本，Loom 1.17（net.fabricmc.fabric-loom）不再注册
+	// modImplementation/modApi 等重映射配置（docs.fabricmc.net/develop/loom/#plugin-ids），
+	// 官方与社区一致改用普通 implementation 声明 mod 依赖。
+	implementation "xaero.minimap:xaerominimap-fabric-26.2:26.5.0"
+	// 官方建议的 common 侧类型（仅编译期参考，本实现未直接使用，注释备用）
+	// compileOnly "xaero.minimap:xaerominimap-common-26.2:26.5.0"
 }
 
 processResources {
