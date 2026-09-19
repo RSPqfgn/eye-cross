@@ -12,7 +12,9 @@
 
 ## 快速上手
 
-**前置条件：** [Fabric Loader](https://fabricmc.net/use/installer/) + [Fabric API](https://modrinth.com/mod/fabric-api)（可选）[Xaero's Minimap](https://modrinth.com/mod/xaeros-minimap)（≥26.2.0，用于路标联动）
+**前置模组：** [Fabric Loader](https://fabricmc.net/use/installer/) + [Fabric API](https://modrinth.com/mod/fabric-api)
+
+**联动模组：** [Xaero's Minimap](https://modrinth.com/mod/xaeros-minimap)（≥26.2.0，用于路标联动）
 
 1. 安装 mod，进入主世界；
 2. 随手扔出一颗末影之眼——它破碎或掉落时，模组将自动记录飞行轨迹，并会按要塞环带给出「第几环 + 粗略坐标 + 误差带」的估测；
