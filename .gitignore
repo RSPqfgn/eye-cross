@@ -29,3 +29,5 @@ run/
 "run/
 docs/
 dist/
+.agent-teams/
+.sync-tmp/
