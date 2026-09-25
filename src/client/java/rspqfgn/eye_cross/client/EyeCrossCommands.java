@@ -7,6 +7,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
+import rspqfgn.eye_cross.client.xaero.XaeroSync;
+
 /**
  * /eyecross 客户端命令：help / status / rings / reset / hud / hudpos。
  */
@@ -50,7 +52,24 @@ public final class EyeCrossCommands {
                                 .then(ClientCommands.literal("bottomleft").executes(ctx -> setHudPos(ctx.getSource(),
                                         EyeCrossState.HudPosition.BOTTOM_LEFT)))
                                 .then(ClientCommands.literal("bottomright").executes(ctx -> setHudPos(ctx.getSource(),
-                                        EyeCrossState.HudPosition.BOTTOM_RIGHT))))));
+                                        EyeCrossState.HudPosition.BOTTOM_RIGHT))))
+                        .then(ClientCommands.literal("portal").executes(ctx -> {
+                            markPortalWaypoint(ctx.getSource());
+                            return 1;
+                        }))
+                        .then(ClientCommands.literal("config")
+                                .then(ClientCommands.literal("reload").executes(ctx -> {
+                                    EyeCrossConfig.reload();
+                                    feedback(ctx.getSource(),
+                                            EyeCrossText.tr("eyecross.chat.config_reloaded").withStyle(ChatFormatting.GREEN));
+                                    return 1;
+                                }))
+                                .then(ClientCommands.literal("path").executes(ctx -> {
+                                    feedback(ctx.getSource(), EyeCrossText.tr("eyecross.chat.config_path",
+                                            Component.literal(EyeCrossConfig.getConfigPath().toString()))
+                                            .withStyle(ChatFormatting.GRAY));
+                                    return 1;
+                                })))));
     }
 
     private static void sendHelp(FabricClientCommandSource source) {
@@ -61,7 +80,36 @@ public final class EyeCrossCommands {
         feedback(source, EyeCrossText.tr("eyecross.help.cmd_reset").withStyle(ChatFormatting.GRAY));
         feedback(source, EyeCrossText.tr("eyecross.help.cmd_hud").withStyle(ChatFormatting.GRAY));
         feedback(source, EyeCrossText.tr("eyecross.help.cmd_hudpos").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_portal").withStyle(ChatFormatting.GRAY));
+        feedback(source, EyeCrossText.tr("eyecross.help.cmd_config").withStyle(ChatFormatting.GRAY));
         feedback(source, EyeCrossText.tr("eyecross.help.footer").withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    /**
+     * /eyecross portal：把 Xaero 小地图上的 Stronghold(EC) 路径点移到末地传送门中心。
+     * 尚未检测到完整传送门时提示；Xaero 缺失/版本不足时由 XaeroSync 静默降级并给出说明。
+     */
+    private static void markPortalWaypoint(FabricClientCommandSource source) {
+        EyeCrossState.CompletePortal portal = EyeCrossState.completePortal;
+        if (portal == null) {
+            feedback(source, EyeCrossText.tr("eyecross.chat.portal_not_detected").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
+        if (!EyeCrossConfig.xaeroWaypoints) {
+            feedback(source, EyeCrossText.tr("eyecross.chat.waypoint_disabled").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
+        if (EyeCrossState.dimension == null) {
+            feedback(source, EyeCrossText.tr("eyecross.chat.portal_dimension_missing").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
+        if (!XaeroSync.isAvailable()) {
+            feedback(source, EyeCrossText.tr("eyecross.chat.portal_xaero_unavailable").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
+        XaeroSync.pushPortal(portal.centerX(), portal.centerY(), portal.centerZ(), EyeCrossState.dimension);
+        feedback(source, EyeCrossText.tr("eyecross.chat.portal_waypoint_set",
+                EyeCrossText.f1(portal.centerX()), EyeCrossText.f1(portal.centerZ())).withStyle(ChatFormatting.LIGHT_PURPLE));
     }
 
     private static int setHudPos(FabricClientCommandSource source, EyeCrossState.HudPosition pos) {

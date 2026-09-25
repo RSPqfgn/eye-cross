@@ -12,7 +12,9 @@ public class EyeCrossClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        EyeCrossConfig.load();
         EyeTracker.register();
+        EyeCrossPortalScanner.register();
         EyeCrossHud.register();
         EyeCrossWorldRenderer.register();
         EyeCrossCommands.register();

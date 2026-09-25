@@ -25,7 +25,7 @@ public final class EyeCrossHud {
     }
 
     private static void extract(GuiGraphicsExtractor g, DeltaTracker deltaTracker) {
-        if (!EyeCrossState.hudVisible) {
+        if (!EyeCrossConfig.hudEnabled || !EyeCrossState.hudVisible) {
             return;
         }
         Minecraft client = Minecraft.getInstance();

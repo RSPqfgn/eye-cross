@@ -45,4 +45,18 @@ public final class EyeCrossText {
                         tr("eyecross.chat.teleport_hover", Component.literal(command)))));
         return hint;
     }
+
+    /**
+     * 「设置传送门路径点」片段：点击即执行 /eyecross portal（把 Xaero 小地图上的
+     * Stronghold(EC) 路径点移到末地传送门中心）。
+     */
+    public static MutableComponent portalWaypoint() {
+        MutableComponent hint = tr("eyecross.chat.portal_waypoint").withStyle(Style.EMPTY
+                .withColor(ChatFormatting.GREEN)
+                .withUnderlined(true)
+                .withClickEvent(new ClickEvent.RunCommand("/eyecross portal"))
+                .withHoverEvent(new HoverEvent.ShowText(
+                        tr("eyecross.chat.portal_waypoint_hover"))));
+        return hint;
+    }
 }
