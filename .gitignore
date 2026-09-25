@@ -31,3 +31,4 @@ docs/
 dist/
 .agent-teams/
 .sync-tmp/
+.agent-scratch/
