@@ -14,15 +14,20 @@
 	"entrypoints": {
 		"client": [
 			"rspqfgn.eye_cross.client.EyeCrossClient"
+		],
+		"modmenu": [
+			"rspqfgn.eye_cross.client.EyeCrossModMenu"
 		]
 	},
 	"depends": {
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~26.2",
 		"java": ">=25",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"cloth-config": ">=26.2.155"
 	},
 	"suggests": {
-		"xaerominimap": ">=26.2.0"
+		"xaerominimap": ">=26.2.0",
+		"modmenu": ">=20.0.0"
 	}
 }

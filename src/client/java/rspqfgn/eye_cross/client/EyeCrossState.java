@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 
 /**
- * 模组全部运行时状态：进行中的轨迹采样、已采纳的直线、最新解。
+ * 模组全部运行时状态：进行中的轨迹采样、已采纳的直线、最新解，以及末地传送门扫描结果。
  */
 public final class EyeCrossState {
     private EyeCrossState() {
@@ -26,6 +26,19 @@ public final class EyeCrossState {
      */
     public record Solution(double x, double z, double rmsError, double maxError, double distanceFromPlayer,
             int lineCount) {
+    }
+
+    /**
+     * 扫描到的末地传送门相关方块，用于世界内方框标记。
+     * kind：0 = 末地传送门框架方块（未放眼）；1 = 框架方块（已放眼）；2 = 末地传送门方块。
+     */
+    public record PortalBlock(double x, double y, double z, int kind) {
+    }
+
+    /**
+     * 检测到的完整末地传送门：12 个框架围成 5×5 环，中央 3×3 为末地传送门区域。
+     */
+    public record CompletePortal(double centerX, double centerY, double centerZ, boolean activated, int eyesFilled) {
     }
 
     /**
@@ -96,6 +109,13 @@ public final class EyeCrossState {
     /** 记录轨迹时所在维度；切换维度时清空全部数据。 */
     public static ResourceKey<Level> dimension;
 
+    /** 最近一次扫描到的末地传送门相关方块（世界内方框标记用），每次扫描整体替换。 */
+    public static List<PortalBlock> portalBlocks = new ArrayList<>();
+    /** 检测到的完整末地传送门；尚未检测到时为 null。 */
+    public static CompletePortal completePortal;
+    /** 完整末地传送门的聊天提示是否已经发过（避免每 10 tick 重复刷屏）。 */
+    public static boolean portalAnnounced;
+
     public static void addLine(FitLine line) {
         LINES.add(line);
         while (LINES.size() > MAX_LINES) {
@@ -113,6 +133,9 @@ public final class EyeCrossState {
         solution = null;
         estimate = null;
         parallelWarning = false;
+        portalBlocks.clear();
+        completePortal = null;
+        portalAnnounced = false;
         // 用户确认（t12）：模组重置/维度切换**不再**清空 Xaero 地图上的 eye-cross 路标——
         // 路标由精确解产生后保持在地图上，玩家可自行在 Xaero 里管理/删除。
         // （早期版本曾调用 XaeroSync.clearAll(dimension) 同步清理，已按用户要求移除。）

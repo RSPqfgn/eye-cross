@@ -86,8 +86,10 @@ public final class EyeTracker {
             EyeCrossState.parallelWarning = false;
             EyeCrossState.solution = new EyeCrossState.Solution(s.x(), s.z(), s.rmsError(), s.maxError(),
                     s.distanceFromPlayer(), EyeCrossState.LINES.size());
-            // 可选联动：精确解产生后同步到 Xaero's Minimap（无 Xaero 或版本不足时静默降级）
-            XaeroSync.pushSolution(s.x(), s.z(), EyeCrossState.dimension);
+            // 可选联动：精确解产生后同步到 Xaero's Minimap（配置关闭 / 无 Xaero 或版本不足时静默降级）
+            if (EyeCrossConfig.xaeroWaypoints) {
+                XaeroSync.pushSolution(s.x(), s.z(), EyeCrossState.dimension);
+            }
 
             MutableComponent msg = EyeCrossText
                     .tr("eyecross.chat.solution",

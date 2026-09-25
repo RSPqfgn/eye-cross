@@ -29,7 +29,7 @@ import xaero.hud.minimap.world.container.MinimapWorldRootContainer;
 /**
  * Xaero's Minimap 可选联动隔离层（路线 A：官方第三方路标 API，minimap ≥26.2.0）。
  *
- * <p>约束（docs/xaero-integration-feasibility.md §3 步骤 1）：
+ * <p>约束（立项时已确认）：
  * <ul>
  *   <li>本文件是本仓库中唯一允许出现 {@code xaero.*} 类引用的地方；</li>
  *   <li>运行期探测 + 版本检查（≥26.2.0），任一环节失败 → 静默降级（debug 日志一次 + 整层禁用），
@@ -40,7 +40,9 @@ import xaero.hud.minimap.world.container.MinimapWorldRootContainer;
  *
  * <p>用户确认范围：仅在精确解（solution）产生时创建/更新固定名 Stronghold(EC) 的绿色 S 路标；
  * 不做估测路标、不做误差圈点阵、不做命令开关、不做语言改动。World Map 无需任何代码
- * （自动显示 minimap 管理的第三方路标，见可行性报告 §3 步骤 6.2）。
+ * （自动显示 minimap 管理的第三方路标，无需额外代码）。
+ * <p>传送门联动（用户新增确认）：检测到完整末地传送门后，聊天栏点击入口会把同一个
+ * <code>stronghold</code> 路径点更新为传送门中心（使用真实 Y），不另建第二个路标。
  */
 public final class XaeroSync {
 	private XaeroSync() {
@@ -49,7 +51,7 @@ public final class XaeroSync {
 	private static final Logger LOGGER = LoggerFactory.getLogger("eye-cross/XaeroSync");
 
 	private static final String XAERO_MOD_ID = "xaerominimap";
-	/** 启用门槛：第三方路标系统引入版本 minimap 26.2.0（可行性报告 R9）。 */
+	/** 启用门槛：第三方路标系统引入版本 minimap 26.2.0。 */
 	private static final int MIN_VERSION_MAJOR = 26;
 	private static final int MIN_VERSION_MINOR = 2;
 
@@ -139,8 +141,8 @@ public final class XaeroSync {
 	}
 
 	/**
-	 * 推送/更新精确解路标（同稳定 id 覆盖 = 更新）。用户已手动删除过该路标时不复活（R8 防御，
-	 * 可行性报告 §4：{@code get(id).isThirdPartyDeleted()} 时跳过，尊重用户删除）。
+	 * 推送/更新精确解路标（同稳定 id 覆盖 = 更新）。用户已手动删除过该路标时不复活（R8 防御：
+	 * {@code get(id).isThirdPartyDeleted()} 时跳过，尊重用户删除）。
 	 *
 	 * @param x 解 X 坐标
 	 * @param z 解 Z 坐标
@@ -157,7 +159,32 @@ public final class XaeroSync {
 		}
 		LOGGER.info("[XaeroSync] pushSolution enter, x=" + x + ", z=" + z + ", dimension=" + dimension);
 		try {
-			applyPush(x, z, dimension);
+			applyPush(x, WAYPOINT_Y, z, dimension);
+		} catch (LinkageError | RuntimeException e) {
+			degradeOnce(e);
+		}
+	}
+
+	/**
+	 * 把同一个 <code>stronghold</code> 路径点更新为完整的末地传送门中心（使用真实 Y）。
+	 * 由聊天栏点击入口（/eyecross portal）触发；Xaero 不可用时静默降级。
+	 *
+	 * @param x 传送门中心 X
+	 * @param y 传送门中心 Y（框架所在层）
+	 * @param z 传送门中心 Z
+	 * @param dimension 当前维度
+	 */
+	public static void pushPortal(double x, double y, double z, ResourceKey<Level> dimension) {
+		if (broken || !isAvailable()) {
+			if (!skipPushLogged) {
+				skipPushLogged = true;
+				LOGGER.info("[XaeroSync] pushPortal skipped, broken=" + broken + ", available=" + available);
+			}
+			return;
+		}
+		LOGGER.info("[XaeroSync] pushPortal enter, x=" + x + ", y=" + y + ", z=" + z + ", dimension=" + dimension);
+		try {
+			applyPush(x, y, z, dimension);
 		} catch (LinkageError | RuntimeException e) {
 			degradeOnce(e);
 		}
@@ -194,7 +221,7 @@ public final class XaeroSync {
 		}
 	}
 
-	private static void applyPush(double x, double z, ResourceKey<Level> dimension) {
+	private static void applyPush(double x, double y, double z, ResourceKey<Level> dimension) {
 		if (dimension == null) {
 			LOGGER.info("[XaeroSync] applyPush skip: dimension==null");
 			return;
@@ -236,7 +263,7 @@ public final class XaeroSync {
 			return;
 		}
 		// 颜色/类型内联在方法体内（防回归 t5：不得提升为 static 字段，见类注释）。
-		Waypoint waypoint = new Waypoint((int) Math.floor(x), WAYPOINT_Y, (int) Math.floor(z),
+		Waypoint waypoint = new Waypoint((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z),
 				WAYPOINT_NAME, WAYPOINT_SYMBOL, WaypointColor.GREEN, WaypointPurpose.NORMAL);
 		// t10 修复：Xaero 会把 origin 的 renderInfoOverride 持久化到 config.txt（third-party-waypoint 行）。
 		// 若历史残留/用户删除过该路标（isThirdPartyDeleted=true），Xaero 加载后 add() 会把该 override
@@ -248,7 +275,7 @@ public final class XaeroSync {
 		// 精确解产生后路标必出现（与用户核心需求一致）。
 		tpw.addRenderInfoOverride(WAYPOINT_ID, new WaypointRenderInfo());
 		tpw.add(WAYPOINT_ID, waypoint);
-		LOGGER.info("[XaeroSync] waypoint added/updated: x=" + (int) Math.floor(x) + ", y=" + WAYPOINT_Y
+		LOGGER.info("[XaeroSync] waypoint added/updated: x=" + (int) Math.floor(x) + ", y=" + (int) Math.floor(y)
 				+ ", z=" + (int) Math.floor(z) + ", id=" + WAYPOINT_ID + ", name=" + WAYPOINT_NAME
 				+ ", symbol=" + WAYPOINT_SYMBOL);
 	}
